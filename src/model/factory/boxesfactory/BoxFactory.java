@@ -7,15 +7,17 @@ public abstract class BoxFactory {
     public abstract Box createBox(int x, int y, Object... params);
 
     public static BoxFactory getFactory(String type) {
-        switch (type.toLowerCase()) {
-            case "normal":
-                return new NormalBoxFactory();
-            case "bomb":
-                return new BombBoxFactory();
-            case "key":
-                return new KeyBoxFactory();
-            default:
-                return new NormalBoxFactory();
+        String key = type.toLowerCase();
+        java.util.Map<String, BoxFactory> registry = Holder.REGISTRY;
+        return registry.getOrDefault(key, new NormalBoxFactory());
+    }
+
+    private static class Holder {
+        private static final java.util.Map<String, BoxFactory> REGISTRY = new java.util.HashMap<>();
+        static {
+            REGISTRY.put("normal", new NormalBoxFactory());
+            REGISTRY.put("bomb", new BombBoxFactory());
+            REGISTRY.put("key", new KeyBoxFactory());
         }
     }
 }

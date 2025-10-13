@@ -7,21 +7,22 @@ public abstract class CellFactory {
     public abstract Cell createCell(int x, int y, Object... params);
 
     public static CellFactory getFactory(String type) {
-        switch (type.toLowerCase()) {
-            case "empty":
-                return new EmptyCellFactory();
-            case "wall":
-                return new WallCellFactory();
-            case "target":
-                return new TargetCellFactory();
-            case "checkpoint":
-                return new CheckpointCellFactory();
-            case "slippery":
-                return new SlipperyCellFactory();
-            case "lock":
-                return new LockCellFactory();
-            default:
-                return new EmptyCellFactory();
+        String key = type.toLowerCase();
+        java.util.Map<String, CellFactory> registry = Holder.REGISTRY;
+        return registry.getOrDefault(key, new EmptyCellFactory());
+    }
+
+    // Registro estático para cumplir OCP (extensión sin modificar switch)
+    private static class Holder {
+        private static final java.util.Map<String, CellFactory> REGISTRY = new java.util.HashMap<>();
+        static {
+            REGISTRY.put("empty", new EmptyCellFactory());
+            REGISTRY.put("wall", new WallCellFactory());
+            REGISTRY.put("target", new TargetCellFactory());
+            REGISTRY.put("checkpoint", new CheckpointCellFactory());
+            REGISTRY.put("slippery", new SlipperyCellFactory());
+            REGISTRY.put("lock", new LockCellFactory());
+            REGISTRY.put("keytarget", new KeyTargetCellFactory());
         }
     }
 }

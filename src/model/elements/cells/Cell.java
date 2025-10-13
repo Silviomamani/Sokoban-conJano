@@ -8,8 +8,13 @@ public abstract class Cell extends BoardElement {
         super(x, y, solid);
     }
 
-    public abstract boolean isTarget();
-    public abstract boolean isCheckpoint();
-    public abstract boolean isSlippery();
-    public abstract boolean isLock();
+    public boolean isTarget() { return false; }
+    public boolean isCheckpoint() { return false; }
+    public boolean isSlippery() { return false; }
+    public boolean isLock() { return false; }
+
+    // Hook polimórfico llamado cuando una caja entra a esta celda
+    public void onBoxEntered(model.elements.boxes.Box box) {
+        // por defecto, no hace nada
+    }
 }

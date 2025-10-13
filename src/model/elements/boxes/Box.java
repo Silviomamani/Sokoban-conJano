@@ -10,4 +10,7 @@ public abstract class Box extends BoardElement {
 
     public abstract void onPushed();
     public abstract boolean isExploded();
+
+    // Por defecto, una caja cuenta para la condición de victoria
+    public boolean countsForVictory() { return true; }
 }

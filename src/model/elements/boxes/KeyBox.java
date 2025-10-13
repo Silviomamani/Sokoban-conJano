@@ -34,6 +34,9 @@ public class KeyBox extends Box implements Observable {
     }
 
     @Override
+    public boolean countsForVictory() { return false; }
+
+    @Override
     public String getImageName() {
         return "box_key.png";
     }

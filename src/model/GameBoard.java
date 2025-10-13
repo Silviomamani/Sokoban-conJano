@@ -111,19 +111,15 @@ public class GameBoard implements Observer {
         box.setPosition(newX, newY);
         box.onPushed();
 
+        // Notificar a la celda destino que una caja entró (polimórfico, bajo acoplamiento)
+        targetCell.onBoxEntered(box);
+
         // Si es terreno resbaladizo, deslizar
         if (targetCell.isSlippery()) {
             slideBox(box, dir);
         }
 
-        // Si es KeyBox sobre LockCell, activar
-        if (box instanceof KeyBox && targetCell.isLock()) {
-            KeyBox keyBox = (KeyBox) box;
-            LockCell lockCell = (LockCell) targetCell;
-            if (keyBox.getKeyId() == lockCell.getLockId()) {
-                keyBox.notifyOnLock();
-            }
-        }
+        // La interacción específica se maneja en onBoxEntered de cada celda
 
         return true;
     }
@@ -140,6 +136,8 @@ public class GameBoard implements Observer {
             if (getBoxAt(nextX, nextY) != null) break;
 
             box.setPosition(nextX, nextY);
+            // Notificar a la celda al entrar durante el deslizamiento
+            nextCell.onBoxEntered(box);
 
             if (!nextCell.isSlippery()) break;
         }
@@ -149,6 +147,7 @@ public class GameBoard implements Observer {
 
     public boolean checkVictory() {
         for (Box box : boxes) {
+            if (!box.countsForVictory()) continue;
             Cell cellBelow = grid[box.getY()][box.getX()];
             if (!cellBelow.isTarget()) {
                 return false;
