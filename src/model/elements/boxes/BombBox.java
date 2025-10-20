@@ -1,63 +1,42 @@
 package model.elements.boxes;
 
-public class BombBox extends Box {
-    private int countdown;
-    private static final int INITIAL_COUNTDOWN = 8;
-    private boolean exploded;
-    private boolean activated; // Nueva bandera
+import model.elements.interfaces.Explosive;
+import model.elements.boxes.states.*;
+
+public class BombBox extends Box implements Explosive {
+    private BombState state;
 
     public BombBox(int x, int y) {
         super(x, y);
-        this.countdown = INITIAL_COUNTDOWN;
-        this.exploded = false;
-        this.activated = false; // Inicialmente no activada
+        this.state = new InactiveBombState();
+    }
+
+    private BombBox(int x, int y, BombState state) {
+        super(x, y);
+        this.state = state;
     }
 
     @Override
     public void onPushed() {
-        // Activar la bomba la primera vez que se empuja
-        if (!activated) {
-            activated = true;
-        }
-
-        // Decrementar solo cuando esta caja específica es empujada
-        if (activated && countdown > 0) {
-            countdown--;
-            if (countdown == 0) {
-                exploded = true;
-            }
-        }
+        state = state.onPush();
     }
 
     public int getCountdown() {
-        return countdown;
+        return state.getCountdown();
     }
 
     @Override
     public boolean isExploded() {
-        return exploded;
+        return state.isExploded();
     }
 
     @Override
     public String getImageName() {
-        if (!activated) {
-            return "box_bomb.png"; // Bomba sin activar
-        } else if (exploded) {
-            return "box_bomb.png"; // O una imagen de explosión si tienes
-        } else if (countdown <= 2) {
-            return "box_bomb_red.png";
-        } else if (countdown <= 4) {
-            return "box_bomb_orange.png";
-        }
-        return "box_bomb.png";
+        return state.getImageName();
     }
 
     @Override
     public Box clone() {
-        BombBox cloned = new BombBox(x, y);
-        cloned.countdown = this.countdown;
-        cloned.exploded = this.exploded;
-        cloned.activated = this.activated;
-        return cloned;
+        return new BombBox(x, y, state.clone());
     }
 }

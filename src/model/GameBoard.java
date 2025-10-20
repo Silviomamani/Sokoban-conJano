@@ -7,6 +7,9 @@ import model.elements.boxes.*;
 import model.elements.cells.Cell;
 import model.elements.cells.EmptyCell;
 import model.elements.cells.LockCell;
+import model.elements.interfaces.Explosive;
+import model.elements.interfaces.Identifiable;
+import model.elements.interfaces.VictoryRelevant;
 import model.observer.Observer;
 import java.util.*;
 
@@ -14,11 +17,11 @@ public class GameBoard implements Observer {
     private Cell[][] grid;
     private List<Box> boxes;
     private Player player;
-    private int width;
-    private int height;
+    private final int width;
+    private final int height;
     private int moveCount;
     private int pushCount;
-    private Map<Integer, List<LockCell>> locks; // lockId -> lista de celdas
+    private final Map<Integer, List<LockCell>> locks;
 
     public GameBoard(int width, int height) {
         this.width = width;
@@ -40,13 +43,16 @@ public class GameBoard implements Observer {
     }
 
     public void setCell(int x, int y, Cell cell) {
-        if (isValidPosition(x, y)) {
-            grid[y][x] = cell;
-            if (cell instanceof LockCell) {
-                LockCell lock = (LockCell) cell;
-                locks.computeIfAbsent(lock.getLockId(), k -> new ArrayList<>()).add(lock);
-            }
+        if (!isValidPosition(x, y)) return;
+
+        grid[y][x] = cell;
+        if (cell instanceof LockCell) {
+            registerLockCell((LockCell) cell);
         }
+    }
+
+    private void registerLockCell(LockCell lock) {
+        locks.computeIfAbsent(lock.getLockId(), k -> new ArrayList<>()).add(lock);
     }
 
     public void addBox(Box box) {
@@ -74,24 +80,18 @@ public class GameBoard implements Observer {
         Box boxAtTarget = getBoxAt(newX, newY);
 
         if (boxAtTarget != null) {
-            // Intentar empujar la caja
             if (!pushBox(boxAtTarget, dir)) {
                 return false;
             }
             pushCount++;
         }
 
-        // Mover jugador
         player.setPosition(newX, newY);
         moveCount++;
 
-        // Verificar checkpoint
         if (targetCell.isCheckpoint()) {
             GameManager.getInstance().saveCheckpoint();
         }
-
-        // Decrementar bombas
-
 
         return true;
     }
@@ -100,28 +100,34 @@ public class GameBoard implements Observer {
         int newX = box.getX() + dir.dx;
         int newY = box.getY() + dir.dy;
 
-        if (!isValidPosition(newX, newY)) return false;
+        if (!canPushBoxTo(newX, newY)) return false;
 
         Cell targetCell = grid[newY][newX];
-        if (targetCell.isSolid()) return false;
 
-        if (getBoxAt(newX, newY) != null) return false;
+        moveBoxTo(box, newX, newY, targetCell);
 
-        // Mover caja
-        box.setPosition(newX, newY);
-        box.onPushed();
-
-        // Notificar a la celda destino que una caja entró (polimórfico, bajo acoplamiento)
-        targetCell.onBoxEntered(box);
-
-        // Si es terreno resbaladizo, deslizar
         if (targetCell.isSlippery()) {
             slideBox(box, dir);
         }
 
-        // La interacción específica se maneja en onBoxEntered de cada celda
-
         return true;
+    }
+
+    private boolean canPushBoxTo(int x, int y) {
+        if (!isValidPosition(x, y)) return false;
+
+        Cell targetCell = grid[y][x];
+        if (targetCell.isSolid()) return false;
+
+        return getBoxAt(x, y) == null;
+    }
+
+    private void moveBoxTo(Box box, int x, int y, Cell targetCell) {
+        box.setPosition(x, y);
+        box.onPushed();
+
+        // Delegate interaction to cell (polymorphism)
+        targetCell.onBoxEntered(box);
     }
 
     private void slideBox(Box box, Direction dir) {
@@ -129,40 +135,57 @@ public class GameBoard implements Observer {
             int nextX = box.getX() + dir.dx;
             int nextY = box.getY() + dir.dy;
 
-            if (!isValidPosition(nextX, nextY)) break;
+            if (!canSlideBoxTo(nextX, nextY)) break;
 
             Cell nextCell = grid[nextY][nextX];
-            if (nextCell.isSolid()) break;
-            if (getBoxAt(nextX, nextY) != null) break;
-
             box.setPosition(nextX, nextY);
-            // Notificar a la celda al entrar durante el deslizamiento
             nextCell.onBoxEntered(box);
 
             if (!nextCell.isSlippery()) break;
         }
     }
 
+    private boolean canSlideBoxTo(int x, int y) {
+        if (!isValidPosition(x, y)) return false;
 
+        Cell cell = grid[y][x];
+        if (cell.isSolid()) return false;
 
+        return getBoxAt(x, y) == null;
+    }
+
+    // REFACTORED: Using VictoryRelevant interface
     public boolean checkVictory() {
         for (Box box : boxes) {
-            if (!box.countsForVictory()) continue;
-            Cell cellBelow = grid[box.getY()][box.getX()];
-            if (!cellBelow.isTarget()) {
+            if (!isBoxOnTarget(box)) {
                 return false;
             }
         }
         return true;
     }
 
+    private boolean isBoxOnTarget(Box box) {
+        // Only boxes that count for victory matter
+        if (box instanceof VictoryRelevant && !((VictoryRelevant) box).countsForVictory()) {
+            return true; // Skip this box
+        }
+
+        Cell cellBelow = grid[box.getY()][box.getX()];
+        return cellBelow.isTarget();
+    }
+
+    // REFACTORED: Using Explosive interface
     public boolean checkDefeat() {
         for (Box box : boxes) {
-            if (box.isExploded()) {
+            if (isBoxExploded(box)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean isBoxExploded(Box box) {
+        return box instanceof Explosive && ((Explosive) box).isExploded();
     }
 
     public Box getBoxAt(int x, int y) {
@@ -175,71 +198,82 @@ public class GameBoard implements Observer {
     }
 
     public Cell getCell(int x, int y) {
-        if (isValidPosition(x, y)) {
-            return grid[y][x];
-        }
-        return null;
+        return isValidPosition(x, y) ? grid[y][x] : null;
     }
 
     public boolean isValidPosition(int x, int y) {
         return x >= 0 && x < width && y >= 0 && y < height;
     }
 
-    // Observer para KeyBox
+    // REFACTORED: Using Identifiable interface
     @Override
     public void update(Object subject) {
-        if (subject instanceof KeyBox) {
-            KeyBox keyBox = (KeyBox) subject;
-            unlockDoors(keyBox.getKeyId());
+        if (subject instanceof Identifiable) {
+            unlockDoors(((Identifiable) subject).getId());
         }
     }
 
     private void unlockDoors(int lockId) {
         List<LockCell> lockCells = locks.get(lockId);
-        if (lockCells != null) {
-            for (LockCell lock : lockCells) {
-                // Reemplazar con celda vacía
-                grid[lock.getY()][lock.getX()] = new EmptyCell(lock.getX(), lock.getY());
+        if (lockCells == null) return;
+
+        for (LockCell lock : lockCells) {
+            replaceLockWithEmptyCell(lock);
+        }
+    }
+
+    private void replaceLockWithEmptyCell(LockCell lock) {
+        grid[lock.getY()][lock.getX()] = new EmptyCell(lock.getX(), lock.getY());
+    }
+
+    public GameBoard deepClone() {
+        GameBoard cloned = new GameBoard(width, height);
+
+        cloneGrid(cloned);
+        cloneBoxes(cloned);
+        clonePlayer(cloned);
+        cloneStats(cloned);
+        rebuildLocks(cloned);
+
+        return cloned;
+    }
+
+    private void cloneGrid(GameBoard target) {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                target.grid[y][x] = (Cell) this.grid[y][x].clone();
             }
         }
     }
 
-    // Clonación profunda para checkpoint
-    public GameBoard deepClone() {
-        GameBoard cloned = new GameBoard(width, height);
-
-        // Clonar grid
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                cloned.grid[y][x] = (Cell) this.grid[y][x].clone();
-            }
-        }
-
-        // Clonar boxes
+    private void cloneBoxes(GameBoard target) {
         for (Box box : boxes) {
             Box clonedBox = (Box) box.clone();
-            cloned.boxes.add(clonedBox);
+            target.boxes.add(clonedBox);
             if (clonedBox instanceof KeyBox) {
-                ((KeyBox) clonedBox).addObserver(cloned);
+                ((KeyBox) clonedBox).addObserver(target);
             }
         }
+    }
 
-        // Clonar player
-        cloned.player = this.player.clone();
-        cloned.moveCount = this.moveCount;
-        cloned.pushCount = this.pushCount;
+    private void clonePlayer(GameBoard target) {
+        target.player = this.player.clone();
+    }
 
-        // Reconstruir locks
+    private void cloneStats(GameBoard target) {
+        target.moveCount = this.moveCount;
+        target.pushCount = this.pushCount;
+    }
+
+    private void rebuildLocks(GameBoard target) {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                if (cloned.grid[y][x] instanceof LockCell) {
-                    LockCell lock = (LockCell) cloned.grid[y][x];
-                    cloned.locks.computeIfAbsent(lock.getLockId(), k -> new ArrayList<>()).add(lock);
+                if (target.grid[y][x] instanceof LockCell) {
+                    LockCell lock = (LockCell) target.grid[y][x];
+                    target.registerLockCell(lock);
                 }
             }
         }
-
-        return cloned;
     }
 
     // Getters

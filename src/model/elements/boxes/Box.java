@@ -1,16 +1,16 @@
 package model.elements.boxes;
 
 import model.elements.BoardElement;
+import model.elements.interfaces.Pushable;
+import model.elements.interfaces.VictoryRelevant;
 
-// Clase abstracta para cajas
-public abstract class Box extends BoardElement {
+public abstract class Box extends BoardElement implements Pushable, VictoryRelevant {
     public Box(int x, int y) {
         super(x, y, true);
     }
 
-    public abstract void onPushed();
-    public abstract boolean isExploded();
-
-    // Por defecto, una caja cuenta para la condición de victoria
-    public boolean countsForVictory() { return true; }
+    @Override
+    public boolean countsForVictory() {
+        return true; // Default behavior
+    }
 }

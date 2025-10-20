@@ -2,12 +2,14 @@ package model.elements.boxes;
 
 import model.observer.Observable;
 import model.observer.Observer;
+import model.elements.interfaces.Identifiable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class KeyBox extends Box implements Observable {
-    private int keyId;
-    private List<Observer> observers;
+public class KeyBox extends Box implements Observable, Identifiable {
+    private static final String IMAGE_NAME = "box_key.png";
+    private final int keyId;
+    private final List<Observer> observers;
 
     public KeyBox(int x, int y, int keyId) {
         super(x, y);
@@ -15,13 +17,20 @@ public class KeyBox extends Box implements Observable {
         this.observers = new ArrayList<>();
     }
 
-    public int getKeyId() {
+    @Override
+    public int getId() {
         return keyId;
+    }
+
+    // Deprecated: Use getId() instead
+    @Deprecated
+    public int getKeyId() {
+        return getId();
     }
 
     @Override
     public void onPushed() {
-        // No hace nada en el push
+        // No action on push
     }
 
     public void notifyOnLock() {
@@ -29,22 +38,19 @@ public class KeyBox extends Box implements Observable {
     }
 
     @Override
-    public boolean isExploded() {
-        return false;
+    public boolean countsForVictory() {
+        return false; // Keys don't count for victory
     }
 
     @Override
-    public boolean countsForVictory() { return false; }
-
-    @Override
     public String getImageName() {
-        return "box_key.png";
+        return IMAGE_NAME;
     }
 
     @Override
     public Box clone() {
         KeyBox cloned = new KeyBox(x, y, keyId);
-        cloned.observers = new ArrayList<>(this.observers);
+        cloned.observers.addAll(this.observers);
         return cloned;
     }
 
