@@ -7,9 +7,9 @@ import model.elements.boxes.*;
 import model.elements.cells.Cell;
 import model.elements.cells.EmptyCell;
 import model.elements.cells.LockCell;
-import model.elements.interfaces.Explosive;
-import model.elements.interfaces.Identifiable;
-import model.elements.interfaces.VictoryRelevant;
+import model.elements.boxes.interfaces.Explosive;
+import model.elements.boxes.interfaces.Identifiable;
+import model.elements.boxes.interfaces.VictoryRelevant;
 import model.observer.Observer;
 import java.util.*;
 

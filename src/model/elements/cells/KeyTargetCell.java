@@ -25,7 +25,7 @@ public class KeyTargetCell extends Cell {
     public boolean isLock() { return false; }
 
     @Override
-    public String getImageName() { return "target.png"; }
+    public String getImageName() { return "target_key.png"; }
 
     @Override
     public Cell clone() { return new KeyTargetCell(x, y, lockId); }

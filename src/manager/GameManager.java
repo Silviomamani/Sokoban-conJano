@@ -26,7 +26,7 @@ public class GameManager {
     }
 
     private void initializeLevels() {
-        levelFiles.add("levels/level1.txt");
+        levelFiles.add("levels/level6.txt");
         levelFiles.add("levels/level2.txt");
         levelFiles.add("levels/level3.txt");
         levelFiles.add("levels/level4.txt");

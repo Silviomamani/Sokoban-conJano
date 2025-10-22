@@ -2,7 +2,7 @@ package model.elements.boxes;
 
 import model.observer.Observable;
 import model.observer.Observer;
-import model.elements.interfaces.Identifiable;
+import model.elements.boxes.interfaces.Identifiable;
 import java.util.ArrayList;
 import java.util.List;
 

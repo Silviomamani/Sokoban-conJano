@@ -1,6 +1,6 @@
 package model.elements.boxes;
 
-import model.elements.interfaces.Explosive;
+import model.elements.boxes.interfaces.Explosive;
 import model.elements.boxes.states.*;
 
 public class BombBox extends Box implements Explosive {

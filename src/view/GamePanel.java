@@ -26,7 +26,7 @@ public class GamePanel extends JPanel {
     private void loadImages() {
         // Cargar imágenes de recursos
         String[] imageNames = {
-                "empty.png", "wall.png", "target.png", "checkpoint.png",
+                "empty.png", "wall.png", "target.png", "target_key.png","checkpoint.png",
                 "slippery.png", "lock.png", "box_normal.png", "box_bomb.png",
                 "box_bomb_orange.png", "box_bomb_red.png", "box_key.png", "player.png"
         };
