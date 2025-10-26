@@ -7,6 +7,7 @@ import model.elements.boxes.*;
 import model.elements.cells.Cell;
 import model.elements.cells.EmptyCell;
 import model.elements.cells.LockCell;
+import model.elements.cells.interfaces.*;
 import model.elements.boxes.interfaces.Explosive;
 import model.elements.boxes.interfaces.Identifiable;
 import model.elements.boxes.interfaces.VictoryRelevant;
@@ -89,7 +90,8 @@ public class GameBoard implements Observer {
         player.setPosition(newX, newY);
         moveCount++;
 
-        if (targetCell.isCheckpoint()) {
+        // Usar interfaz Checkpointable en lugar de método booleano
+        if (targetCell instanceof Checkpointable) {
             GameManager.getInstance().saveCheckpoint();
         }
 
@@ -106,7 +108,8 @@ public class GameBoard implements Observer {
 
         moveBoxTo(box, newX, newY, targetCell);
 
-        if (targetCell.isSlippery()) {
+        // Usar interfaz Slippery en lugar de método booleano
+        if (targetCell instanceof Slippery) {
             slideBox(box, dir);
         }
 
@@ -126,8 +129,10 @@ public class GameBoard implements Observer {
         box.setPosition(x, y);
         box.onPushed();
 
-        // Delegate interaction to cell (polymorphism)
-        targetCell.onBoxEntered(box);
+        // Usar interfaz BoxInteractive para delegación polimórfica
+        if (targetCell instanceof BoxInteractive) {
+            ((BoxInteractive) targetCell).onBoxEntered(box);
+        }
     }
 
     private void slideBox(Box box, Direction dir) {
@@ -139,9 +144,14 @@ public class GameBoard implements Observer {
 
             Cell nextCell = grid[nextY][nextX];
             box.setPosition(nextX, nextY);
-            nextCell.onBoxEntered(box);
 
-            if (!nextCell.isSlippery()) break;
+            // Usar interfaz BoxInteractive
+            if (nextCell instanceof BoxInteractive) {
+                ((BoxInteractive) nextCell).onBoxEntered(box);
+            }
+
+            // Usar interfaz Slippery en lugar de método booleano
+            if (!(nextCell instanceof Slippery)) break;
         }
     }
 
@@ -171,7 +181,13 @@ public class GameBoard implements Observer {
         }
 
         Cell cellBelow = grid[box.getY()][box.getX()];
-        return cellBelow.isTarget();
+
+        // Usar interfaz Targetable en lugar de método booleano isTarget()
+        if (cellBelow instanceof Targetable) {
+            return ((Targetable) cellBelow).isTargetFor(box);
+        }
+
+        return false;
     }
 
     // REFACTORED: Using Explosive interface

@@ -1,20 +1,26 @@
 package model.elements.cells;
 
-public class TargetCell extends Cell {
+import model.elements.cells.interfaces.Targetable;
+import model.elements.boxes.Box;
+
+public class TargetCell extends Cell implements Targetable {
+
     public TargetCell(int x, int y) {
         super(x, y, false);
     }
 
     @Override
-    public boolean isTarget() { return true; }
+    public boolean isTargetFor(Box box) {
+        return true;
+    }
+
     @Override
-    public boolean isCheckpoint() { return false; }
+    public String getImageName() {
+        return "target.png";
+    }
+
     @Override
-    public boolean isSlippery() { return false; }
-    @Override
-    public boolean isLock() { return false; }
-    @Override
-    public String getImageName() { return "target.png"; }
-    @Override
-    public Cell clone() { return new TargetCell(x, y); }
+    public Cell clone() {
+        return new TargetCell(x, y);
+    }
 }

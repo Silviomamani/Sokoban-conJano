@@ -6,15 +6,12 @@ public class EmptyCell extends Cell {
     }
 
     @Override
-    public boolean isTarget() { return false; }
+    public String getImageName() {
+        return "empty.png";
+    }
+
     @Override
-    public boolean isCheckpoint() { return false; }
-    @Override
-    public boolean isSlippery() { return false; }
-    @Override
-    public boolean isLock() { return false; }
-    @Override
-    public String getImageName() { return "empty.png"; }
-    @Override
-    public Cell clone() { return new EmptyCell(x, y); }
+    public Cell clone() {
+        return new EmptyCell(x, y);
+    }
 }

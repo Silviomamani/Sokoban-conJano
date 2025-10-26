@@ -6,15 +6,12 @@ public class WallCell extends Cell {
     }
 
     @Override
-    public boolean isTarget() { return false; }
+    public String getImageName() {
+        return "wall.png";
+    }
+
     @Override
-    public boolean isCheckpoint() { return false; }
-    @Override
-    public boolean isSlippery() { return false; }
-    @Override
-    public boolean isLock() { return false; }
-    @Override
-    public String getImageName() { return "wall.png"; }
-    @Override
-    public Cell clone() { return new WallCell(x, y); }
+    public Cell clone() {
+        return new WallCell(x, y);
+    }
 }
