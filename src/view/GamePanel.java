@@ -55,53 +55,13 @@ public class GamePanel extends JPanel {
                     System.out.println("✓ Imagen cargada desde archivo: " + name);
                 } else {
                     System.out.println("✗ No se encontró: " + name);
-                    imageCache.put(name, createPlaceholderImage(name));
+
                 }
             }
         } catch (Exception e) {
             System.out.println("✗ Error al cargar " + name + ": " + e.getMessage());
-            imageCache.put(name, createPlaceholderImage(name));
+
         }
-    }
-
-    private Image createPlaceholderImage(String name) {
-        // Crear imagen placeholder con colores
-        BufferedImage img = new BufferedImage(CELL_SIZE, CELL_SIZE, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = img.createGraphics();
-
-        // Colores según el tipo
-        if (name.contains("wall")) {
-            g.setColor(new Color(80, 80, 80));
-        } else if (name.contains("target")) {
-            g.setColor(new Color(255, 200, 100));
-        } else if (name.contains("checkpoint")) {
-            g.setColor(new Color(100, 200, 255));
-        } else if (name.contains("slippery")) {
-            g.setColor(new Color(150, 220, 255));
-        } else if (name.contains("lock")) {
-            g.setColor(new Color(150, 100, 50));
-        } else if (name.contains("box_bomb_red")) {
-            g.setColor(new Color(255, 50, 50));
-        } else if (name.contains("box_bomb_orange")) {
-            g.setColor(new Color(255, 150, 50));
-        } else if (name.contains("box_bomb")) {
-            g.setColor(new Color(100, 50, 50));
-        } else if (name.contains("box_key")) {
-            g.setColor(new Color(255, 215, 0));
-        } else if (name.contains("box")) {
-            g.setColor(new Color(139, 90, 43));
-        } else if (name.contains("player")) {
-            g.setColor(new Color(50, 150, 50));
-        } else {
-            g.setColor(new Color(40, 40, 40));
-        }
-
-        g.fillRect(0, 0, CELL_SIZE, CELL_SIZE);
-        g.setColor(Color.BLACK);
-        g.drawRect(0, 0, CELL_SIZE - 1, CELL_SIZE - 1);
-        g.dispose();
-
-        return img;
     }
 
     @Override
