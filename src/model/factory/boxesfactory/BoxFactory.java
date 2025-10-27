@@ -1,27 +1,22 @@
 package model.factory.boxesfactory;
 
-import model.elements.boxes.*;
+import model.elements.boxes.Box;
+import model.factory.GameElementFactory;
+import model.factory.CreationContext;
 
-// Factory Method para crear cajas
-public abstract class BoxFactory {
-    public abstract Box createBox(int x, int y, Object... params);
-
-    public static BoxFactory getFactory(String type) {
-        String key = type.toLowerCase();
-        java.util.Map<String, BoxFactory> registry = Holder.REGISTRY;
-        return registry.getOrDefault(key, new NormalBoxFactory());
+public abstract class BoxFactory implements GameElementFactory<Box> {
+    // Template Method para validación común
+    @Override
+    public final Box create(CreationContext context) {
+        validateContext(context);
+        return createBox(context);
     }
 
-    private static class Holder {
-        private static final java.util.Map<String, BoxFactory> REGISTRY = new java.util.HashMap<>();
-        static {
-            REGISTRY.put("normal", new NormalBoxFactory());
-            REGISTRY.put("bomb", new BombBoxFactory());
-            REGISTRY.put("key", new KeyBoxFactory());
+    protected abstract Box createBox(CreationContext context);
+
+    protected void validateContext(CreationContext context) {
+        if (context == null) {
+            throw new IllegalArgumentException("Context cannot be null");
         }
     }
 }
-
-
-
-

@@ -1,11 +1,19 @@
 package model.factory.boxesfactory;
 
-import model.elements.boxes.Box;
 import model.elements.boxes.NormalBox;
+import model.elements.boxes.Box;
+import model.factory.CreationContext;
 
 public class NormalBoxFactory extends BoxFactory {
+    private static final String TYPE = "normal";
+
     @Override
-    public Box createBox(int x, int y, Object... params) {
-        return new NormalBox(x, y);
+    protected Box createBox(CreationContext context) {
+        return new NormalBox(context.getX(), context.getY());
+    }
+
+    @Override
+    public String getType() {
+        return TYPE;
     }
 }

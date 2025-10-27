@@ -1,33 +1,21 @@
 package model.factory.cellsfactory;
 
-import model.elements.cells.*;
+import model.elements.cells.Cell;
+import model.factory.GameElementFactory;
+import model.factory.CreationContext;
 
-// Factory Method para crear celdas
-public abstract class CellFactory {
-    public abstract Cell createCell(int x, int y, Object... params);
-
-    public static CellFactory getFactory(String type) {
-        String key = type.toLowerCase();
-        java.util.Map<String, CellFactory> registry = Holder.REGISTRY;
-        return registry.getOrDefault(key, new EmptyCellFactory());
+public abstract class CellFactory implements GameElementFactory<Cell> {
+    @Override
+    public final Cell create(CreationContext context) {
+        validateContext(context);
+        return createCell(context);
     }
 
-    // Registro estático para cumplir OCP (extensión sin modificar switch)
-    private static class Holder {
-        private static final java.util.Map<String, CellFactory> REGISTRY = new java.util.HashMap<>();
-        static {
-            REGISTRY.put("empty", new EmptyCellFactory());
-            REGISTRY.put("wall", new WallCellFactory());
-            REGISTRY.put("target", new TargetCellFactory());
-            REGISTRY.put("checkpoint", new CheckpointCellFactory());
-            REGISTRY.put("slippery", new SlipperyCellFactory());
-            REGISTRY.put("lock", new LockCellFactory());
-            REGISTRY.put("keytarget", new KeyTargetCellFactory());
+    protected abstract Cell createCell(CreationContext context);
+
+    protected void validateContext(CreationContext context) {
+        if (context == null) {
+            throw new IllegalArgumentException("Context cannot be null");
         }
     }
 }
-
-
-
-
-

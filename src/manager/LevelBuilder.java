@@ -2,15 +2,99 @@ package manager;
 
 import model.GameBoard;
 import model.elements.Player;
-import model.factory.boxesfactory.BoxFactory;
-import model.factory.cellsfactory.CellFactory;
-import java.util.function.BiConsumer;
+import model.elements.boxes.Box;
+import model.elements.cells.Cell;
+import model.factory.CreationContext;
+import model.factory.config.FactoryConfiguration;
 import java.io.*;
 import java.util.*;
 
-// BUILDER: Construye niveles desde archivos .txt
+/**
+ * Builder Pattern - Construye niveles desde archivos
+ * High Cohesion: Responsabilidad única de parsear niveles
+ */
 public class LevelBuilder {
     private static final int DEFAULT_KEY_ID = 0;
+
+    // Strategy Pattern para parseo de caracteres
+    private interface CharacterParser {
+        void parse(int x, int y, GameBoard board);
+    }
+
+    private static final Map<Character, CharacterParser> PARSERS = new HashMap<>();
+
+    static {
+        // Inicializar configuration
+        FactoryConfiguration.initialize();
+
+        // Registrar parsers - Open/Closed Principle
+        PARSERS.put(' ', (x, y, b) -> {
+            Cell cell = FactoryConfiguration.getCellRegistry()
+                    .create("empty", CreationContext.builder(x, y).build());
+            b.setCell(x, y, cell);
+        });
+
+        PARSERS.put('#', (x, y, b) -> {
+            Cell cell = FactoryConfiguration.getCellRegistry()
+                    .create("wall", CreationContext.builder(x, y).build());
+            b.setCell(x, y, cell);
+        });
+
+        PARSERS.put('.', (x, y, b) -> {
+            Cell cell = FactoryConfiguration.getCellRegistry()
+                    .create("target", CreationContext.builder(x, y).build());
+            b.setCell(x, y, cell);
+        });
+
+        PARSERS.put('C', (x, y, b) -> {
+            Cell cell = FactoryConfiguration.getCellRegistry()
+                    .create("checkpoint", CreationContext.builder(x, y).build());
+            b.setCell(x, y, cell);
+        });
+
+        PARSERS.put('I', (x, y, b) -> {
+            Cell cell = FactoryConfiguration.getCellRegistry()
+                    .create("slippery", CreationContext.builder(x, y).build());
+            b.setCell(x, y, cell);
+        });
+
+        PARSERS.put('L', (x, y, b) -> {
+            Cell cell = FactoryConfiguration.getCellRegistry()
+                    .create("lock", CreationContext.builder(x, y)
+                            .withLockId(DEFAULT_KEY_ID).build());
+            b.setCell(x, y, cell);
+        });
+
+        PARSERS.put('Y', (x, y, b) -> {
+            Cell cell = FactoryConfiguration.getCellRegistry()
+                    .create("keytarget", CreationContext.builder(x, y)
+                            .withKeyId(DEFAULT_KEY_ID).build());
+            b.setCell(x, y, cell);
+        });
+
+        PARSERS.put('B', (x, y, b) -> {
+            Box box = FactoryConfiguration.getBoxRegistry()
+                    .create("normal", CreationContext.builder(x, y).build());
+            b.addBox(box);
+        });
+
+        PARSERS.put('X', (x, y, b) -> {
+            Box box = FactoryConfiguration.getBoxRegistry()
+                    .create("bomb", CreationContext.builder(x, y).build());
+            b.addBox(box);
+        });
+
+        PARSERS.put('K', (x, y, b) -> {
+            Box box = FactoryConfiguration.getBoxRegistry()
+                    .create("key", CreationContext.builder(x, y)
+                            .withKeyId(DEFAULT_KEY_ID).build());
+            b.addBox(box);
+        });
+
+        PARSERS.put('P', (x, y, b) -> {
+            b.setPlayer(new Player(x, y));
+        });
+    }
 
     public static GameBoard buildLevel(String filepath) {
         try {
@@ -27,12 +111,8 @@ public class LevelBuilder {
         InputStream is = LevelBuilder.class.getClassLoader().getResourceAsStream(filepath);
 
         if (is == null) {
-            // Fallback al sistema de archivos (proyecto en ejecución local)
-            java.nio.file.Path fsPath = java.nio.file.Paths.get(System.getProperty("user.dir"), "resources", filepath);
-            if (!java.nio.file.Files.exists(fsPath)) {
-                // Intento alternativo: si filepath ya incluye levels/..., anteponer solo resources/
-                fsPath = java.nio.file.Paths.get(System.getProperty("user.dir"), "resources", filepath);
-            }
+            java.nio.file.Path fsPath = java.nio.file.Paths.get(
+                    System.getProperty("user.dir"), "resources", filepath);
             if (java.nio.file.Files.exists(fsPath)) {
                 BufferedReader reader = java.nio.file.Files.newBufferedReader(fsPath);
                 String line;
@@ -42,7 +122,6 @@ public class LevelBuilder {
                 reader.close();
                 return lines;
             } else {
-                // No se encontró: usar nivel por defecto
                 return createDefaultLevelData();
             }
         }
@@ -76,59 +155,8 @@ public class LevelBuilder {
     }
 
     private static void parseCharacter(char c, int x, int y, GameBoard board) {
-        BiConsumer<int[], GameBoard> action = Registry.MAP.getOrDefault(c, Registry.MAP.get(' '));
-        action.accept(new int[]{x, y}, board);
-    }
-
-    // Registro de parsers por carácter (OCP)
-    private static class Registry {
-        private static final java.util.Map<Character, BiConsumer<int[], GameBoard>> MAP = new java.util.HashMap<>();
-        static {
-            MAP.put(' ', (pos, b) -> {
-                CellFactory f = CellFactory.getFactory("empty");
-                b.setCell(pos[0], pos[1], f.createCell(pos[0], pos[1]));
-            });
-            MAP.put('#', (pos, b) -> {
-                CellFactory f = CellFactory.getFactory("wall");
-                b.setCell(pos[0], pos[1], f.createCell(pos[0], pos[1]));
-            });
-            MAP.put('.', (pos, b) -> {
-                CellFactory f = CellFactory.getFactory("target");
-                b.setCell(pos[0], pos[1], f.createCell(pos[0], pos[1]));
-            });
-            MAP.put('C', (pos, b) -> {
-                CellFactory f = CellFactory.getFactory("checkpoint");
-                b.setCell(pos[0], pos[1], f.createCell(pos[0], pos[1]));
-            });
-            MAP.put('I', (pos, b) -> {
-                CellFactory f = CellFactory.getFactory("slippery");
-                b.setCell(pos[0], pos[1], f.createCell(pos[0], pos[1]));
-            });
-            MAP.put('L', (pos, b) -> {
-                CellFactory f = CellFactory.getFactory("lock");
-                b.setCell(pos[0], pos[1], f.createCell(pos[0], pos[1], DEFAULT_KEY_ID));
-            });
-            // Nueva celda destino para llave (ID 0)
-            MAP.put('Y', (pos, b) -> {
-                CellFactory f = CellFactory.getFactory("keytarget");
-                b.setCell(pos[0], pos[1], f.createCell(pos[0], pos[1], DEFAULT_KEY_ID));
-            });
-            MAP.put('B', (pos, b) -> {
-                BoxFactory f = BoxFactory.getFactory("normal");
-                b.addBox(f.createBox(pos[0], pos[1]));
-            });
-            MAP.put('X', (pos, b) -> {
-                BoxFactory f = BoxFactory.getFactory("bomb");
-                b.addBox(f.createBox(pos[0], pos[1]));
-            });
-            MAP.put('K', (pos, b) -> {
-                BoxFactory f = BoxFactory.getFactory("key");
-                b.addBox(f.createBox(pos[0], pos[1], DEFAULT_KEY_ID));
-            });
-            MAP.put('P', (pos, b) -> {
-                b.setPlayer(new Player(pos[0], pos[1]));
-            });
-        }
+        CharacterParser parser = PARSERS.getOrDefault(c, PARSERS.get(' '));
+        parser.parse(x, y, board);
     }
 
     private static List<String> createDefaultLevelData() {
@@ -143,5 +171,12 @@ public class LevelBuilder {
 
     private static GameBoard createDefaultLevel() {
         return parseLevel(createDefaultLevelData());
+    }
+
+    /**
+     * Permite registrar parsers personalizados en runtime
+     */
+    public static void registerParser(char character, CharacterParser parser) {
+        PARSERS.put(character, parser);
     }
 }
