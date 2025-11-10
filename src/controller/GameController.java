@@ -1,18 +1,18 @@
 package controller;
 
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.HashMap;
+import java.util.Map;
 import manager.GameManager;
 import manager.SoundManager;
 import model.GameBoard;
 import model.elements.Direction;
 import view.GameWindow;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.util.HashMap;
-import java.util.Map;
 
 public class GameController implements KeyListener {
     private GameWindow gameWindow;
-    private GameManager gameManager;
+    private final GameManager gameManager;
     private final Map<Integer, Runnable> keyActions = new HashMap<>();
 
     public GameController() {
@@ -59,10 +59,14 @@ public class GameController implements KeyListener {
         }
         if (board.checkVictory()) {
             SoundManager.getInstance().playSound("victory");
-            gameManager.nextLevel();
+            boolean advanced = gameManager.nextLevel();
             if (gameWindow != null) {
-                gameWindow.showMessage("¡Nivel completado!");
-                gameWindow.refresh();
+                if (advanced) {
+                    gameWindow.showMessage("¡Nivel completado!");
+                    gameWindow.refresh();
+                } else {
+                    gameWindow.showCompletionScreen();
+                }
             }
         }
         if (board.checkDefeat()) {
@@ -84,6 +88,14 @@ public class GameController implements KeyListener {
         gameManager.restartLevel();
         if (gameWindow != null) {
             gameWindow.refresh();
+        }
+    }
+
+    public void restartFromBeginning() {
+        gameManager.restartFromFirstLevel();
+        if (gameWindow != null) {
+            gameWindow.refresh();
+            gameWindow.requestFocusInWindow();
         }
     }
 

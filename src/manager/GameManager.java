@@ -1,16 +1,16 @@
 package manager;
 
-import model.GameBoard;
 import java.util.ArrayList;
 import java.util.List;
+import model.GameBoard;
 
 // SINGLETON: GameManager
 public class GameManager {
     private static GameManager instance;
-    private List<String> levelFiles;
+    private final List<String> levelFiles;
     private int currentLevelIndex;
     private GameBoard currentBoard;
-    private GameBoard checkpointBoard;
+    private model.GameBoardMemento checkpointMemento;
 
     private GameManager() {
         levelFiles = new ArrayList<>();
@@ -26,7 +26,7 @@ public class GameManager {
     }
 
     private void initializeLevels() {
-        levelFiles.add("levels/level6.txt");
+        levelFiles.add("levels/level1.txt");
         levelFiles.add("levels/level2.txt");
         levelFiles.add("levels/level3.txt");
         levelFiles.add("levels/level4.txt");
@@ -39,7 +39,7 @@ public class GameManager {
             currentLevelIndex = levelIndex;
             String filepath = levelFiles.get(levelIndex);
             currentBoard = LevelBuilder.buildLevel(filepath);
-            checkpointBoard = null;
+            checkpointMemento = null;
         }
     }
 
@@ -47,21 +47,35 @@ public class GameManager {
         loadLevel(currentLevelIndex);
     }
 
-    public void nextLevel() {
+    public boolean nextLevel() {
         if (currentLevelIndex < levelFiles.size() - 1) {
             loadLevel(currentLevelIndex + 1);
+            return true;
         }
+        return false;
     }
 
+    public void restartFromFirstLevel() {
+        loadLevel(0);
+    }
+
+    /**
+     * MEMENTO PATTERN: Guarda el estado actual del tablero como checkpoint
+     * El GameManager actúa como Caretaker del patrón Memento
+     */
     public void saveCheckpoint() {
         if (currentBoard != null) {
-            checkpointBoard = currentBoard.deepClone();
+            checkpointMemento = currentBoard.createMemento();
         }
     }
 
+    /**
+     * MEMENTO PATTERN: Restaura el estado del tablero desde el checkpoint guardado
+     * El GameManager actúa como Caretaker del patrón Memento
+     */
     public void restoreCheckpoint() {
-        if (checkpointBoard != null) {
-            currentBoard = checkpointBoard.deepClone();
+        if (checkpointMemento != null && currentBoard != null) {
+            currentBoard.restoreFromMemento(checkpointMemento);
         }
     }
 

@@ -242,6 +242,58 @@ public class GameBoard implements Observer {
         grid[lock.getY()][lock.getX()] = new EmptyCell(lock.getX(), lock.getY());
     }
 
+    /**
+     * MEMENTO PATTERN: Crea un memento con el estado actual del tablero
+     * @return GameBoardMemento con el estado guardado
+     */
+    public GameBoardMemento createMemento() {
+        return new GameBoardMemento(grid, boxes, player, width, height, 
+                                   moveCount, pushCount, locks);
+    }
+
+    /**
+     * MEMENTO PATTERN: Restaura el estado desde un memento
+     * @param memento El memento con el estado a restaurar
+     */
+    public void restoreFromMemento(GameBoardMemento memento) {
+        if (memento == null) return;
+        
+        // Restaurar grid
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                this.grid[y][x] = (Cell) memento.getGrid()[y][x].clone();
+            }
+        }
+        
+        // Restaurar boxes
+        this.boxes.clear();
+        for (Box box : memento.getBoxes()) {
+            Box clonedBox = (Box) box.clone();
+            this.boxes.add(clonedBox);
+            if (clonedBox instanceof KeyBox) {
+                ((KeyBox) clonedBox).addObserver(this);
+            }
+        }
+        
+        // Restaurar player
+        this.player = memento.getPlayer().clone();
+        
+        // Restaurar stats
+        this.moveCount = memento.getMoveCount();
+        this.pushCount = memento.getPushCount();
+        
+        // Reconstruir locks
+        this.locks.clear();
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (this.grid[y][x] instanceof LockCell) {
+                    LockCell lock = (LockCell) this.grid[y][x];
+                    registerLockCell(lock);
+                }
+            }
+        }
+    }
+
     public GameBoard deepClone() {
         GameBoard cloned = new GameBoard(width, height);
 
