@@ -4,13 +4,28 @@ public class ActiveBombState implements BombState {
     private static final String DEFAULT_IMAGE = "box_bomb.png";
     private static final String ORANGE_IMAGE = "box_bomb_orange.png";
     private static final String RED_IMAGE = "box_bomb_red.png";
-    private static final int ORANGE_THRESHOLD = 4;
-    private static final int RED_THRESHOLD = 2;
 
     private final int countdown;
+    private final int initialCountdown;
 
     public ActiveBombState(int countdown) {
+        this(countdown, countdown);
+    }
+
+    public ActiveBombState(int countdown, int initialCountdown) {
         this.countdown = countdown;
+        this.initialCountdown = initialCountdown;
+    }
+
+    private int calculateOrangeThreshold() {
+        int threshold = initialCountdown / 2;
+        return threshold < 1 ? 1 : threshold;
+    }
+
+    private int calculateRedThreshold() {
+        int orangeThreshold = calculateOrangeThreshold();
+        int threshold = orangeThreshold / 2;
+        return threshold < 1 ? 1 : threshold;
     }
 
     @Override
@@ -19,14 +34,17 @@ public class ActiveBombState implements BombState {
         if (newCountdown <= 0) {
             return new ExplodedBombState();
         }
-        return new ActiveBombState(newCountdown);
+        return new ActiveBombState(newCountdown, initialCountdown);
     }
 
     @Override
     public String getImageName() {
-        if (countdown <= RED_THRESHOLD) {
+        int redThreshold = calculateRedThreshold();
+        int orangeThreshold = calculateOrangeThreshold();
+        
+        if (countdown <= redThreshold) {
             return RED_IMAGE;
-        } else if (countdown <= ORANGE_THRESHOLD) {
+        } else if (countdown <= orangeThreshold) {
             return ORANGE_IMAGE;
         }
         return DEFAULT_IMAGE;
@@ -44,6 +62,6 @@ public class ActiveBombState implements BombState {
 
     @Override
     public BombState clone() {
-        return new ActiveBombState(countdown);
+        return new ActiveBombState(countdown, initialCountdown);
     }
 }

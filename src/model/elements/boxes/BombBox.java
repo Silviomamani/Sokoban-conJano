@@ -5,14 +5,21 @@ import model.elements.boxes.states.*;
 
 public class BombBox extends Box implements Explosive {
     private BombState state;
+    private final int maxPushes;
 
     public BombBox(int x, int y) {
-        super(x, y);
-        this.state = new InactiveBombState();
+        this(x, y, 8);
     }
 
-    private BombBox(int x, int y, BombState state) {
+    public BombBox(int x, int y, int maxPushes) {
         super(x, y);
+        this.maxPushes = maxPushes;
+        this.state = new InactiveBombState(maxPushes);
+    }
+
+    private BombBox(int x, int y, BombState state, int maxPushes) {
+        super(x, y);
+        this.maxPushes = maxPushes;
         this.state = state;
     }
 
@@ -37,6 +44,6 @@ public class BombBox extends Box implements Explosive {
 
     @Override
     public Box clone() {
-        return new BombBox(x, y, state.clone());
+        return new BombBox(x, y, state.clone(), maxPushes);
     }
 }

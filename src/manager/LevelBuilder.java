@@ -145,18 +145,57 @@ public class LevelBuilder {
 
         for (int y = 0; y < lines.size(); y++) {
             String line = lines.get(y);
-            for (int x = 0; x < line.length(); x++) {
+            int x = 0;
+            while (x < line.length()) {
                 char c = line.charAt(x);
-                parseCharacter(c, x, y, board);
+                int skipChars = parseCharacter(c, x, y, board, line);
+                x += skipChars > 0 ? skipChars : 1; // Saltar caracteres del patrón o avanzar 1
             }
         }
 
         return board;
     }
 
-    private static void parseCharacter(char c, int x, int y, GameBoard board) {
+    private static int parseCharacter(char c, int x, int y, GameBoard board, String line) {
+        // Detectar patrón x(8) para bombas
+        if (c == 'X' || c == 'x') {
+            int[] result = extractPushesFromLine(line, x);
+            int pushes = result[0];
+            int skipChars = result[1];
+            
+            Box box = FactoryConfiguration.getBoxRegistry()
+                    .create("bomb", CreationContext.builder(x, y)
+                            .withParameter("pushes", pushes).build());
+            board.addBox(box);
+            return skipChars;
+        }
+        
         CharacterParser parser = PARSERS.getOrDefault(c, PARSERS.get(' '));
         parser.parse(x, y, board);
+        return 0;
+    }
+
+    private static int[] extractPushesFromLine(String line, int x) {
+        // Buscar patrón (número) después de x
+        if (x + 1 < line.length() && line.charAt(x + 1) == '(') {
+            int start = x + 2;
+            int end = start;
+            while (end < line.length() && Character.isDigit(line.charAt(end))) {
+                end++;
+            }
+            if (end < line.length() && line.charAt(end) == ')') {
+                try {
+                    int pushes = Integer.parseInt(line.substring(start, end));
+                    // Retornar [pushes, caracteres a saltar]
+                    // Saltar desde x hasta después de ')' = end - x + 1
+                    return new int[]{pushes, end - x + 1};
+                } catch (NumberFormatException e) {
+                    // Si no se puede parsear, usar valor por defecto
+                }
+            }
+        }
+        // Valor por defecto si no se encuentra el patrón
+        return new int[]{8, 0};
     }
 
     private static List<String> createDefaultLevelData() {
