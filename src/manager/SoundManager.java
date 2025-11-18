@@ -5,7 +5,13 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-// Manager de sonidos
+/**
+ * SINGLETON: Gestor de sonidos del juego
+ * Principios aplicados:
+ * - SRP: Solo maneja carga y reproducción de sonidos
+ * - Expert: Conoce qué sonidos necesita el juego
+ * - Lazy Initialization: Carga sonidos al inicializar
+ */
 public class SoundManager {
     private static SoundManager instance;
     private Map<String, Clip> sounds;
@@ -14,6 +20,7 @@ public class SoundManager {
     private SoundManager() {
         sounds = new HashMap<>();
         soundEnabled = true;
+        initializeSounds(); // Auto-inicialización
     }
 
     public static SoundManager getInstance() {
@@ -21,6 +28,22 @@ public class SoundManager {
             instance = new SoundManager();
         }
         return instance;
+    }
+
+    /**
+     * Inicializa todos los sonidos del juego
+     * Principio Expert: SoundManager sabe qué sonidos necesita el juego
+     */
+    private void initializeSounds() {
+        ResourceManager resources = ResourceManager.getInstance();
+
+        // Cargar todos los sonidos necesarios
+        loadSound("move", resources.getSoundPath("move.wav"));
+        loadSound("victory", resources.getSoundPath("victory.wav"));
+        loadSound("explosion", resources.getSoundPath("explosion.wav"));
+        loadSound("checkpoint", resources.getSoundPath("checkpoint.wav"));
+
+        System.out.println("Sonidos inicializados: " + sounds.size() + " cargados");
     }
 
     public void loadSound(String name, String filepath) {
@@ -57,8 +80,12 @@ public class SoundManager {
 
         Clip clip = sounds.get(name);
         if (clip != null) {
+            // Detener y reiniciar el clip para permitir múltiples reproducciones
+            clip.stop();
             clip.setFramePosition(0);
             clip.start();
+        } else {
+            System.err.println("Sonido no encontrado: " + name);
         }
     }
 
@@ -68,5 +95,18 @@ public class SoundManager {
 
     public boolean isSoundEnabled() {
         return soundEnabled;
+    }
+
+    /**
+     * Libera recursos de todos los sonidos
+     * Útil para cuando se cierra la aplicación
+     */
+    public void dispose() {
+        for (Clip clip : sounds.values()) {
+            if (clip != null) {
+                clip.close();
+            }
+        }
+        sounds.clear();
     }
 }

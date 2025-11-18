@@ -1,7 +1,6 @@
 package view;
 
-import manager.GameManager;
-import model.GameBoard;
+import manager.GameState;
 import javax.swing.*;
 import java.awt.*;
 
@@ -15,32 +14,34 @@ public class HUDPanel extends JPanel {
         setBackground(new Color(50, 50, 50));
         setPreferredSize(new Dimension(800, 50));
 
-        movesLabel = new JLabel("Movimientos: 0");
-        pushesLabel = new JLabel("Empujes: 0");
-        levelLabel = new JLabel("Nivel: 1");
+        initializeLabels();
+    }
 
-        // Estilo de labels
+    private void initializeLabels() {
         Font font = new Font("Arial", Font.BOLD, 16);
         Color textColor = Color.WHITE;
 
-        movesLabel.setFont(font);
-        movesLabel.setForeground(textColor);
-        pushesLabel.setFont(font);
-        pushesLabel.setForeground(textColor);
-        levelLabel.setFont(font);
-        levelLabel.setForeground(textColor);
+        levelLabel = createLabel("Nivel: 1", font, textColor);
+        movesLabel = createLabel("Movimientos: 0", font, textColor);
+        pushesLabel = createLabel("Empujes: 0", font, textColor);
 
         add(levelLabel);
         add(movesLabel);
         add(pushesLabel);
     }
 
-    public void updateStats() {
-        GameBoard board = GameManager.getInstance().getCurrentBoard();
-        if (board != null) {
-            movesLabel.setText("Movimientos: " + board.getMoveCount());
-            pushesLabel.setText("Empujes: " + board.getPushCount());
-            levelLabel.setText("Nivel: " + (GameManager.getInstance().getCurrentLevelIndex() + 1));
+    private JLabel createLabel(String text, Font font, Color color) {
+        JLabel label = new JLabel(text);
+        label.setFont(font);
+        label.setForeground(color);
+        return label;
+    }
+
+    public void updateStats(GameState state) {
+        if (state != null) {
+            movesLabel.setText("Movimientos: " + state.getMoves());
+            pushesLabel.setText("Empujes: " + state.getPushes());
+            levelLabel.setText("Nivel: " + (state.getCurrentLevel() + 1));
         }
     }
 }

@@ -10,6 +10,14 @@ import model.GameBoard;
 import model.elements.Direction;
 import view.GameWindow;
 
+/**
+ * Controlador del juego (patrón Controller de GRASP)
+ * Maneja entrada del usuario y coordina acciones
+ * Principios aplicados:
+ * - Controller: Coordina operaciones del sistema
+ * - Low Coupling: Delega lógica a GameManager
+ * - High Cohesion: Solo maneja input y coordinación
+ */
 public class GameController implements KeyListener {
     private GameWindow gameWindow;
     private final GameManager gameManager;
@@ -41,34 +49,55 @@ public class GameController implements KeyListener {
     private void move(Direction dir) {
         GameBoard board = gameManager.getCurrentBoard();
         if (board == null) return;
+
         boolean moved = board.movePlayer(dir);
+
+        if (moved) {
+            // IMPORTANTE: Notificar cambio de estado al GameManager
+            gameManager.notifyMovement();
+        }
+
         postMove(moved, board);
     }
 
     private void restoreCheckpoint() {
         gameManager.restoreCheckpoint();
         SoundManager.getInstance().playSound("checkpoint");
-        if (gameWindow != null) gameWindow.refresh();
+
+        // El GameManager ya notifica el cambio de estado en restoreCheckpoint()
+
+        if (gameWindow != null) {
+            gameWindow.refresh();
+        }
     }
 
     private void postMove(boolean moved, GameBoard board) {
         if (!moved) return;
+
         SoundManager.getInstance().playSound("move");
+
         if (gameWindow != null) {
             gameWindow.refresh();
         }
+
+        // Verificar victoria
         if (board.checkVictory()) {
             SoundManager.getInstance().playSound("victory");
             boolean advanced = gameManager.nextLevel();
-            if (gameWindow != null) {
-                if (advanced) {
-                    gameWindow.showMessage("¡Nivel completado!");
-                    gameWindow.refresh();
-                } else {
-                    gameWindow.showCompletionScreen();
-                }
+
+            // El GameManager ya notifica onLevelCompleted() y onGameCompleted()
+            // en el método nextLevel(), por lo que GameWindow ya mostrará
+            // el diálogo de finalización automáticamente si es necesario
+
+            if (gameWindow != null && advanced) {
+                gameWindow.showMessage("¡Nivel completado!");
+                gameWindow.refresh();
             }
+            // Si no avanzó (advanced == false), GameWindow ya recibió
+            // la notificación onGameCompleted() y mostrará el diálogo
         }
+
+        // Verificar derrota (bomba)
         if (board.checkDefeat()) {
             SoundManager.getInstance().playSound("explosion");
             if (gameWindow != null) {
@@ -81,11 +110,15 @@ public class GameController implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         Runnable action = keyActions.get(e.getKeyCode());
-        if (action != null) action.run();
+        if (action != null) {
+            action.run();
+        }
     }
 
     public void restartLevel() {
         gameManager.restartLevel();
+        SoundManager.getInstance().playSound("checkpoint");
+        // El GameManager ya notifica el cambio de estado en restartLevel()
         if (gameWindow != null) {
             gameWindow.refresh();
         }
@@ -93,6 +126,7 @@ public class GameController implements KeyListener {
 
     public void restartFromBeginning() {
         gameManager.restartFromFirstLevel();
+        // El GameManager ya notifica el cambio de estado en restartFromFirstLevel()
         if (gameWindow != null) {
             gameWindow.refresh();
             gameWindow.requestFocusInWindow();
