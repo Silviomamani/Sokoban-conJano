@@ -12,7 +12,6 @@ import view.GameWindow;
 
 /**
  * Controlador del juego (patrón Controller de GRASP)
- * Maneja entrada del usuario y coordina acciones
  * Principios aplicados:
  * - Controller: Coordina operaciones del sistema
  * - Low Coupling: Delega lógica a GameManager
@@ -85,19 +84,12 @@ public class GameController implements KeyListener {
             SoundManager.getInstance().playSound("victory");
             boolean advanced = gameManager.nextLevel();
 
-            // El GameManager ya notifica onLevelCompleted() y onGameCompleted()
-            // en el método nextLevel(), por lo que GameWindow ya mostrará
-            // el diálogo de finalización automáticamente si es necesario
-
             if (gameWindow != null && advanced) {
                 gameWindow.showMessage("¡Nivel completado!");
                 gameWindow.refresh();
             }
-            // Si no avanzó (advanced == false), GameWindow ya recibió
-            // la notificación onGameCompleted() y mostrará el diálogo
         }
 
-        // Verificar derrota (bomba)
         if (board.checkDefeat()) {
             SoundManager.getInstance().playSound("explosion");
             if (gameWindow != null) {
@@ -118,7 +110,7 @@ public class GameController implements KeyListener {
     public void restartLevel() {
         gameManager.restartLevel();
         SoundManager.getInstance().playSound("checkpoint");
-        // El GameManager ya notifica el cambio de estado en restartLevel()
+
         if (gameWindow != null) {
             gameWindow.refresh();
         }
@@ -126,7 +118,7 @@ public class GameController implements KeyListener {
 
     public void restartFromBeginning() {
         gameManager.restartFromFirstLevel();
-        // El GameManager ya notifica el cambio de estado en restartFromFirstLevel()
+
         if (gameWindow != null) {
             gameWindow.refresh();
             gameWindow.requestFocusInWindow();

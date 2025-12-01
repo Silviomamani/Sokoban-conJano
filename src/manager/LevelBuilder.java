@@ -24,10 +24,8 @@ public class LevelBuilder {
     private static final Map<Character, CharacterParser> PARSERS = new HashMap<>();
 
     static {
-        // Inicializar configuration
         FactoryConfiguration.initialize();
 
-        // Registrar parsers - Open/Closed Principle
         PARSERS.put(' ', (x, y, b) -> {
             Cell cell = FactoryConfiguration.getCellRegistry()
                     .create("empty", CreationContext.builder(x, y).build());
@@ -157,7 +155,6 @@ public class LevelBuilder {
     }
 
     private static int parseCharacter(char c, int x, int y, GameBoard board, String line) {
-        // Detectar patrón x(8) para bombas
         if (c == 'X' || c == 'x') {
             int[] result = extractPushesFromLine(line, x);
             int pushes = result[0];
@@ -176,7 +173,6 @@ public class LevelBuilder {
     }
 
     private static int[] extractPushesFromLine(String line, int x) {
-        // Buscar patrón (número) después de x
         if (x + 1 < line.length() && line.charAt(x + 1) == '(') {
             int start = x + 2;
             int end = start;
@@ -186,15 +182,14 @@ public class LevelBuilder {
             if (end < line.length() && line.charAt(end) == ')') {
                 try {
                     int pushes = Integer.parseInt(line.substring(start, end));
-                    // Retornar [pushes, caracteres a saltar]
-                    // Saltar desde x hasta después de ')' = end - x + 1
+
                     return new int[]{pushes, end - x + 1};
                 } catch (NumberFormatException e) {
-                    // Si no se puede parsear, usar valor por defecto
+
                 }
             }
         }
-        // Valor por defecto si no se encuentra el patrón
+
         return new int[]{8, 0};
     }
 
@@ -212,9 +207,7 @@ public class LevelBuilder {
         return parseLevel(createDefaultLevelData());
     }
 
-    /**
-     * Permite registrar parsers personalizados en runtime
-     */
+
     public static void registerParser(char character, CharacterParser parser) {
         PARSERS.put(character, parser);
     }

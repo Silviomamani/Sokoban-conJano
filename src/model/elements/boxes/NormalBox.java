@@ -9,7 +9,6 @@ public class NormalBox extends Box {
 
     @Override
     public void onPushed() {
-        // No special action
     }
 
     @Override

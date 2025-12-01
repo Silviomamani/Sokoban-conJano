@@ -16,8 +16,7 @@ public class InactiveBombState implements BombState {
 
     @Override
     public BombState onPush() {
-        // El primer empuje también cuenta, así que reducimos el countdown en 1
-        // Si initialCountdown es 10, después del primer empuje queda en 9
+
         int newCountdown = initialCountdown - 1;
         if (newCountdown <= 0) {
             return new ExplodedBombState();

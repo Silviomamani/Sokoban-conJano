@@ -5,13 +5,6 @@ import java.awt.*;
 import java.io.File;
 import java.net.URL;
 
-/**
- * Responsable de cargar recursos (imágenes, etc.)
- * Principios aplicados:
- * - Expert: Es experto en localización de recursos
- * - SRP: Solo maneja carga de recursos
- * - Low Coupling: Centraliza acceso a recursos
- */
 public class ResourceManager {
     private static ResourceManager instance;
     private static final String RESOURCES_PATH = "resources/";
@@ -25,17 +18,13 @@ public class ResourceManager {
         return instance;
     }
 
-    /**
-     * Carga una imagen desde classpath o filesystem
-     */
     public ImageIcon loadImage(String relativePath) {
-        // Intenta desde classpath primero
+
         URL imgURL = getClass().getClassLoader().getResource(relativePath);
         if (imgURL != null) {
             return new ImageIcon(imgURL);
         }
 
-        // Fallback a filesystem
         File fallback = new File(RESOURCES_PATH + relativePath);
         if (fallback.exists()) {
             return new ImageIcon(fallback.getAbsolutePath());
@@ -44,9 +33,6 @@ public class ResourceManager {
         return null;
     }
 
-    /**
-     * Carga y escala una imagen automáticamente
-     */
     public ImageIcon loadScaledImage(String relativePath, int maxWidth, int maxHeight) {
         ImageIcon icon = loadImage(relativePath);
         if (icon == null) return null;
@@ -69,9 +55,6 @@ public class ResourceManager {
         return icon;
     }
 
-    /**
-     * Obtiene ruta de sonido
-     */
     public String getSoundPath(String soundName) {
         return "sounds/" + soundName;
     }

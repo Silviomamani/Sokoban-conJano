@@ -49,10 +49,6 @@ public class FactoryConfiguration {
         return cellRegistry;
     }
 
-    /**
-     * Permite agregar factories personalizadas en runtime
-     * Open/Closed Principle en acción
-     */
     public static void registerBoxFactory(BoxFactory factory) {
         getBoxRegistry().register(factory);
     }

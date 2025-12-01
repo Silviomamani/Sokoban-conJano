@@ -90,7 +90,6 @@ public class GameBoard implements Observer {
         player.setPosition(newX, newY);
         moveCount++;
 
-        // Usar interfaz Checkpointable en lugar de método booleano
         if (targetCell instanceof Checkpointable) {
             GameManager.getInstance().saveCheckpoint();
         }
@@ -108,7 +107,6 @@ public class GameBoard implements Observer {
 
         moveBoxTo(box, newX, newY, targetCell);
 
-        // Usar interfaz Slippery en lugar de método booleano
         if (targetCell instanceof Slippery) {
             slideBox(box, dir);
         }
@@ -129,7 +127,6 @@ public class GameBoard implements Observer {
         box.setPosition(x, y);
         box.onPushed();
 
-        // Usar interfaz BoxInteractive para delegación polimórfica
         if (targetCell instanceof BoxInteractive) {
             ((BoxInteractive) targetCell).onBoxEntered(box);
         }
@@ -145,12 +142,11 @@ public class GameBoard implements Observer {
             Cell nextCell = grid[nextY][nextX];
             box.setPosition(nextX, nextY);
 
-            // Usar interfaz BoxInteractive
+
             if (nextCell instanceof BoxInteractive) {
                 ((BoxInteractive) nextCell).onBoxEntered(box);
             }
 
-            // Usar interfaz Slippery en lugar de método booleano
             if (!(nextCell instanceof Slippery)) break;
         }
     }
@@ -164,7 +160,6 @@ public class GameBoard implements Observer {
         return getBoxAt(x, y) == null;
     }
 
-    // REFACTORED: Using VictoryRelevant interface
     public boolean checkVictory() {
         for (Box box : boxes) {
             if (!isBoxOnTarget(box)) {
@@ -175,14 +170,13 @@ public class GameBoard implements Observer {
     }
 
     private boolean isBoxOnTarget(Box box) {
-        // Only boxes that count for victory matter
+
         if (box instanceof VictoryRelevant && !((VictoryRelevant) box).countsForVictory()) {
             return true; // Skip this box
         }
 
         Cell cellBelow = grid[box.getY()][box.getX()];
 
-        // Usar interfaz Targetable en lugar de método booleano isTarget()
         if (cellBelow instanceof Targetable) {
             return ((Targetable) cellBelow).isTargetFor(box);
         }
@@ -190,7 +184,6 @@ public class GameBoard implements Observer {
         return false;
     }
 
-    // REFACTORED: Using Explosive interface
     public boolean checkDefeat() {
         for (Box box : boxes) {
             if (isBoxExploded(box)) {
@@ -221,7 +214,6 @@ public class GameBoard implements Observer {
         return x >= 0 && x < width && y >= 0 && y < height;
     }
 
-    // REFACTORED: Using Identifiable interface
     @Override
     public void update(Object subject) {
         if (subject instanceof Identifiable) {
@@ -242,30 +234,21 @@ public class GameBoard implements Observer {
         grid[lock.getY()][lock.getX()] = new EmptyCell(lock.getX(), lock.getY());
     }
 
-    /**
-     * MEMENTO PATTERN: Crea un memento con el estado actual del tablero
-     * @return GameBoardMemento con el estado guardado
-     */
     public GameBoardMemento createMemento() {
         return new GameBoardMemento(grid, boxes, player, width, height, 
                                    moveCount, pushCount, locks);
     }
 
-    /**
-     * MEMENTO PATTERN: Restaura el estado desde un memento
-     * @param memento El memento con el estado a restaurar
-     */
+
     public void restoreFromMemento(GameBoardMemento memento) {
         if (memento == null) return;
-        
-        // Restaurar grid
+
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 this.grid[y][x] = (Cell) memento.getGrid()[y][x].clone();
             }
         }
-        
-        // Restaurar boxes
+
         this.boxes.clear();
         for (Box box : memento.getBoxes()) {
             Box clonedBox = (Box) box.clone();
@@ -274,15 +257,13 @@ public class GameBoard implements Observer {
                 ((KeyBox) clonedBox).addObserver(this);
             }
         }
-        
-        // Restaurar player
+
         this.player = memento.getPlayer().clone();
         
-        // Restaurar stats
+
         this.moveCount = memento.getMoveCount();
         this.pushCount = memento.getPushCount();
-        
-        // Reconstruir locks
+
         this.locks.clear();
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {

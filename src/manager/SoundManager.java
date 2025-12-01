@@ -7,10 +7,7 @@ import java.util.Map;
 
 /**
  * SINGLETON: Gestor de sonidos del juego
- * Principios aplicados:
- * - SRP: Solo maneja carga y reproducción de sonidos
- * - Expert: Conoce qué sonidos necesita el juego
- * - Lazy Initialization: Carga sonidos al inicializar
+
  */
 public class SoundManager {
     private static SoundManager instance;
@@ -20,7 +17,7 @@ public class SoundManager {
     private SoundManager() {
         sounds = new HashMap<>();
         soundEnabled = true;
-        initializeSounds(); // Auto-inicialización
+        initializeSounds();
     }
 
     public static SoundManager getInstance() {
@@ -30,14 +27,9 @@ public class SoundManager {
         return instance;
     }
 
-    /**
-     * Inicializa todos los sonidos del juego
-     * Principio Expert: SoundManager sabe qué sonidos necesita el juego
-     */
     private void initializeSounds() {
         ResourceManager resources = ResourceManager.getInstance();
 
-        // Cargar todos los sonidos necesarios
         loadSound("move", resources.getSoundPath("move.wav"));
         loadSound("victory", resources.getSoundPath("victory.wav"));
         loadSound("explosion", resources.getSoundPath("explosion.wav"));
@@ -48,7 +40,7 @@ public class SoundManager {
 
     public void loadSound(String name, String filepath) {
         try {
-            // Intentar cargar desde resources/sounds/ usando ClassLoader
+
             java.net.URL soundURL = getClass().getClassLoader().getResource(filepath);
 
             if (soundURL != null) {
@@ -58,7 +50,7 @@ public class SoundManager {
                 sounds.put(name, clip);
                 System.out.println("✓ Sonido cargado: " + name);
             } else {
-                // Fallback: intentar cargar desde archivo
+
                 File soundFile = new File("resources/" + filepath);
                 if (soundFile.exists()) {
                     AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
@@ -80,7 +72,7 @@ public class SoundManager {
 
         Clip clip = sounds.get(name);
         if (clip != null) {
-            // Detener y reiniciar el clip para permitir múltiples reproducciones
+
             clip.stop();
             clip.setFramePosition(0);
             clip.start();
@@ -97,10 +89,6 @@ public class SoundManager {
         return soundEnabled;
     }
 
-    /**
-     * Libera recursos de todos los sonidos
-     * Útil para cuando se cierra la aplicación
-     */
     public void dispose() {
         for (Clip clip : sounds.values()) {
             if (clip != null) {

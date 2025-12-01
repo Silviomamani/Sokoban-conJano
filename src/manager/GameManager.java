@@ -25,8 +25,6 @@ public class GameManager {
     private model.GameBoardMemento checkpointMemento;
     private final List<GameStateListener> listeners;
 
-    // ========== OBSERVER PATTERN - Interface ==========
-
     public interface GameStateListener {
         void onGameStateChanged(GameState state);
         void onLevelCompleted();
@@ -47,7 +45,6 @@ public class GameManager {
         return instance;
     }
 
-    // ========== OBSERVER PATTERN - Métodos de registro ==========
 
     public void addListener(GameStateListener listener) {
         if (listener != null && !listeners.contains(listener)) {
@@ -89,7 +86,6 @@ public class GameManager {
         );
     }
 
-    // ========== Inicialización de niveles ==========
 
     private void initializeLevels() {
         try {
@@ -122,14 +118,14 @@ public class GameManager {
 
     private void loadLevelsFromResources() {
         try {
-            // Intentar cargar desde recursos del classpath
+
             java.net.URL resourceUrl = getClass().getClassLoader().getResource("levels");
             if (resourceUrl != null) {
                 URI uri = resourceUrl.toURI();
                 Path levelsPath;
 
                 if (uri.getScheme().equals("jar")) {
-                    // Si está en un JAR, usar FileSystem
+
                     FileSystem fileSystem;
                     try {
                         fileSystem = FileSystems.getFileSystem(uri);
@@ -138,7 +134,7 @@ public class GameManager {
                     }
                     levelsPath = fileSystem.getPath("/levels");
                 } else {
-                    // Si está en el sistema de archivos
+
                     levelsPath = Paths.get(uri);
                 }
 
@@ -152,13 +148,13 @@ public class GameManager {
                 }
             }
         } catch (URISyntaxException | IOException e) {
-            // Si falla, intentar desde el sistema de archivos
+
         }
     }
 
     private void loadLevelsFromFileSystem() {
         try {
-            // Intentar cargar desde el directorio de trabajo/resources/levels
+
             Path levelsPath = Paths.get(System.getProperty("user.dir"), "resources", "levels");
 
             if (Files.exists(levelsPath) && Files.isDirectory(levelsPath)) {
@@ -176,7 +172,7 @@ public class GameManager {
         }
     }
 
-    // ========== Gestión de niveles ==========
+
 
     public void loadLevel(int levelIndex) {
         if (levelIndex >= 0 && levelIndex < levelFiles.size()) {
@@ -184,7 +180,7 @@ public class GameManager {
             String filepath = levelFiles.get(levelIndex);
             currentBoard = LevelBuilder.buildLevel(filepath);
             checkpointMemento = null;
-            notifyStateChanged(); // Notificar cambio de estado
+            notifyStateChanged();
         }
     }
 
@@ -194,7 +190,7 @@ public class GameManager {
 
     public boolean nextLevel() {
         if (currentLevelIndex < levelFiles.size() - 1) {
-            notifyLevelCompleted(); // Notificar nivel completado
+            notifyLevelCompleted();
             loadLevel(currentLevelIndex + 1);
             return true;
         } else {
@@ -208,10 +204,7 @@ public class GameManager {
         loadLevel(0);
     }
 
-    /**
-     * MEMENTO PATTERN: Guarda el estado actual del tablero como checkpoint
-     * El GameManager actúa como Caretaker del patrón Memento
-     */
+
     public void saveCheckpoint() {
         if (currentBoard != null) {
             checkpointMemento = currentBoard.createMemento();
@@ -229,10 +222,7 @@ public class GameManager {
         }
     }
 
-    /**
-     * Notifica cambio de estado después de un movimiento
-     * Llamar desde GameController después de cada acción
-     */
+
     public void notifyMovement() {
         notifyStateChanged();
     }

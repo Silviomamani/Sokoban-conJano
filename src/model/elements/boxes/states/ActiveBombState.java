@@ -30,7 +30,6 @@ public class ActiveBombState implements BombState {
 
     @Override
     public BombState onPush() {
-        // Si countdown es 1, explota en este empuje (el número de empujes especificado)
         if (countdown <= 1) {
             return new ExplodedBombState();
         }

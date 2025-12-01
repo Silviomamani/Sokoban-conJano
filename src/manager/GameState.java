@@ -5,7 +5,6 @@ package manager;
  * Principios aplicados:
  * - Information Expert: Encapsula datos de estado
  * - Immutable: Los datos no cambian después de crearse
- * - Low Coupling: Simple POJO sin dependencias
  */
 public class GameState {
     private final int moves;
