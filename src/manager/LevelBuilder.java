@@ -89,6 +89,12 @@ public class LevelBuilder {
             b.addBox(box);
         });
 
+        PARSERS.put('Z', (x, y, b) -> {
+            Box box = FactoryConfiguration.getBoxRegistry()
+                    .create("ice", CreationContext.builder(x, y).build());
+            b.addBox(box);
+        });
+
         PARSERS.put('P', (x, y, b) -> {
             b.setPlayer(new Player(x, y));
         });

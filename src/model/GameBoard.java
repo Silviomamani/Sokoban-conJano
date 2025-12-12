@@ -1,18 +1,19 @@
 package model;
 
+import java.util.*;
 import manager.GameManager;
 import model.elements.Direction;
 import model.elements.Player;
 import model.elements.boxes.*;
+import model.elements.boxes.interfaces.Explosive;
+import model.elements.boxes.interfaces.Identifiable;
+import model.elements.boxes.interfaces.Slidable;
+import model.elements.boxes.interfaces.VictoryRelevant;
 import model.elements.cells.Cell;
 import model.elements.cells.EmptyCell;
 import model.elements.cells.LockCell;
 import model.elements.cells.interfaces.*;
-import model.elements.boxes.interfaces.Explosive;
-import model.elements.boxes.interfaces.Identifiable;
-import model.elements.boxes.interfaces.VictoryRelevant;
 import model.observer.Observer;
-import java.util.*;
 
 public class GameBoard implements Observer {
     private Cell[][] grid;
@@ -107,7 +108,11 @@ public class GameBoard implements Observer {
 
         moveBoxTo(box, newX, newY, targetCell);
 
-        if (targetCell instanceof Slippery) {
+        // Verificar si la caja es deslizable (IceBox)
+        if (box instanceof Slidable) {
+            slideIceBox((Slidable) box, dir);
+        } else if (targetCell instanceof Slippery) {
+            // Deslizamiento normal en celdas resbaladizas
             slideBox(box, dir);
         }
 
@@ -129,6 +134,26 @@ public class GameBoard implements Observer {
 
         if (targetCell instanceof BoxInteractive) {
             ((BoxInteractive) targetCell).onBoxEntered(box);
+        }
+    }
+
+
+    private void slideIceBox(Slidable slidableBox, Direction dir) {
+        int slideDistance = slidableBox.getSlideDistance();
+        Box box = (Box) slidableBox;
+        
+        for (int i = 0; i < slideDistance; i++) {
+            int nextX = box.getX() + dir.dx;
+            int nextY = box.getY() + dir.dy;
+
+            if (!canSlideBoxTo(nextX, nextY)) break;
+
+            Cell nextCell = grid[nextY][nextX];
+            box.setPosition(nextX, nextY);
+
+            if (nextCell instanceof BoxInteractive) {
+                ((BoxInteractive) nextCell).onBoxEntered(box);
+            }
         }
     }
 

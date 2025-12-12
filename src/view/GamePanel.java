@@ -1,16 +1,15 @@
 package view;
 
+import java.awt.*;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.*;
 import manager.GameManager;
 import model.GameBoard;
 import model.elements.Player;
 import model.elements.boxes.Box;
 import model.elements.cells.Cell;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.HashMap;
-import java.util.Map;
-import java.io.File;
 
 public class GamePanel extends JPanel {
     private static final int CELL_SIZE = 50;
@@ -28,7 +27,7 @@ public class GamePanel extends JPanel {
         String[] imageNames = {
                 "empty.png", "wall.png", "target.png", "target_key.png","checkpoint.png",
                 "slippery.png", "lock.png", "box_normal.png", "box_bomb.png",
-                "box_bomb_orange.png", "box_bomb_red.png", "box_key.png", "player.png"
+                "box_bomb_orange.png", "box_bomb_red.png", "box_key.png", "box_ice.png", "player.png"
         };
 
         for (String name : imageNames) {

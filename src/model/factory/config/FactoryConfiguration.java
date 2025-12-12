@@ -1,10 +1,10 @@
 package model.factory.config;
 
+import model.elements.boxes.Box;
+import model.elements.cells.Cell;
 import model.factory.GameElementRegistry;
 import model.factory.boxesfactory.*;
 import model.factory.cellsfactory.*;
-import model.elements.boxes.Box;
-import model.elements.cells.Cell;
 
 public class FactoryConfiguration {
     private static GameElementRegistry<Box> boxRegistry;
@@ -21,6 +21,7 @@ public class FactoryConfiguration {
         boxRegistry.register(new NormalBoxFactory());
         boxRegistry.register(new BombBoxFactory());
         boxRegistry.register(new KeyBoxFactory());
+        boxRegistry.register(new model.factory.boxesfactory.IceBoxFactory());
 
         // Inicializar registry de celdas
         cellRegistry = new GameElementRegistry<>(new EmptyCellFactory());
